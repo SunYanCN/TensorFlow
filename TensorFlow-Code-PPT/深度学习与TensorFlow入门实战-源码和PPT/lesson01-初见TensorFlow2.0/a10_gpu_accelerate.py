@@ -1,6 +1,6 @@
-import tensorflow as tf
 import timeit
 
+import tensorflow as tf
 
 with tf.device('/cpu:0'):
 	cpu_a = tf.random.normal([10000, 1000])
