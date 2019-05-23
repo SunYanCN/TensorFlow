@@ -8,13 +8,13 @@ def func(x):
     :param x: [b, 2]
     :return:
     """
-    z = tf.math.sin(x[...,0]) + tf.math.sin(x[...,1])
+    z = tf.math.sin(x[..., 0]) + tf.math.sin(x[..., 1])
 
     return z
 
 
-x = tf.linspace(0., 2*3.14, 500)
-y = tf.linspace(0., 2*3.14, 500)
+x = tf.linspace(0., 2 * 3.14, 500)
+y = tf.linspace(0., 2 * 3.14, 500)
 # [50, 50]
 point_x, point_y = tf.meshgrid(x, y)
 # [50, 50, 2]
