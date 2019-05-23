@@ -5,6 +5,7 @@ import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tf.random.set_seed(2467)
 
+
 def accuracy(output, target, topk=(1,)):
     maxk = max(topk)
     batch_size = target.shape[0]
@@ -19,11 +20,10 @@ def accuracy(output, target, topk=(1,)):
     for k in topk:
         correct_k = tf.cast(tf.reshape(correct[:k], [-1]), dtype=tf.float32)
         correct_k = tf.reduce_sum(correct_k)
-        acc = float(correct_k* (100.0 / batch_size) )
+        acc = float(correct_k * (100.0 / batch_size))
         res.append(acc)
 
     return res
-
 
 
 output = tf.random.normal([10, 6])
@@ -34,5 +34,5 @@ pred = tf.argmax(output, axis=1)
 print('pred:', pred.numpy())
 print('label:', target.numpy())
 
-acc = accuracy(output, target, topk=(1,2,3,4,5,6))
+acc = accuracy(output, target, topk=(1, 2, 3, 4, 5, 6))
 print('top-1-6 acc:', acc)
