@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-from tensorflow.keras import datasets
+from tensorflow.python.keras import datasets
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -18,13 +18,11 @@ print(x.shape, y.shape, x.dtype, y.dtype)
 print(tf.reduce_min(x), tf.reduce_max(x))
 print(tf.reduce_min(y), tf.reduce_max(y))
 
-
-train_db = tf.data.Dataset.from_tensor_slices((x,y)).batch(128)
-test_db = tf.data.Dataset.from_tensor_slices((x_test,y_test)).batch(128)
+train_db = tf.data.Dataset.from_tensor_slices((x, y)).batch(128)
+test_db = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(128)
 train_iter = iter(train_db)
 sample = next(train_iter)
 print('batch:', sample[0].shape, sample[1].shape)
-
 
 # [b, 784] => [b, 256] => [b, 128] => [b, 10]
 # [dim_in, dim_out], [dim_out]
@@ -37,25 +35,25 @@ b3 = tf.Variable(tf.zeros([10]))
 
 lr = 1e-3
 
-for epoch in range(100): # iterate db for 10
-    for step, (x, y) in enumerate(train_db): # for every batch
+for epoch in range(100):  # iterate db for 10
+    for step, (x, y) in enumerate(train_db):  # for every batch
         # x:[128, 28, 28]
         # y: [128]
 
         # [b, 28, 28] => [b, 28*28]
-        x = tf.reshape(x, [-1, 28*28])
+        x = tf.reshape(x, [-1, 28 * 28])
 
-        with tf.GradientTape() as tape: # tf.Variable
+        with tf.GradientTape() as tape:  # tf.Variable
             # x: [b, 28*28]
             # h1 = x@w1 + b1
             # [b, 784]@[784, 256] + [256] => [b, 256] + [256] => [b, 256] + [b, 256]
-            h1 = x@w1 + tf.broadcast_to(b1, [x.shape[0], 256])
+            h1 = x @ w1 + tf.broadcast_to(b1, [x.shape[0], 256])
             h1 = tf.nn.relu(h1)
             # [b, 256] => [b, 128]
-            h2 = h1@w2 + b2
+            h2 = h1 @ w2 + b2
             h2 = tf.nn.relu(h2)
             # [b, 128] => [b, 10]
-            out = h2@w3 + b3
+            out = h2 @ w3 + b3
 
             # compute loss
             # out: [b, 10]
@@ -79,23 +77,20 @@ for epoch in range(100): # iterate db for 10
         w3.assign_sub(lr * grads[4])
         b3.assign_sub(lr * grads[5])
 
-
         if step % 100 == 0:
             print(epoch, step, 'loss:', float(loss))
-
 
     # test/evluation
     # [w1, b1, w2, b2, w3, b3]
     total_correct, total_num = 0, 0
-    for step, (x,y) in enumerate(test_db):
-
+    for step, (x, y) in enumerate(test_db):
         # [b, 28, 28] => [b, 28*28]
-        x = tf.reshape(x, [-1, 28*28])
+        x = tf.reshape(x, [-1, 28 * 28])
 
         # [b, 784] => [b, 256] => [b, 128] => [b, 10]
-        h1 = tf.nn.relu(x@w1 + b1)
-        h2 = tf.nn.relu(h1@w2 + b2)
-        out = h2@w3 +b3
+        h1 = tf.nn.relu(x @ w1 + b1)
+        h2 = tf.nn.relu(h1 @ w2 + b2)
+        out = h2 @ w3 + b3
 
         # out: [b, 10] ~ R
         # prob: [b, 10] ~ [0, 1]
