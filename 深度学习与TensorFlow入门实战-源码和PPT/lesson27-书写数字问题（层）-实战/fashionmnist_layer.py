@@ -1,15 +1,16 @@
 import os
 
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, optimizers, Sequential
+from tensorflow._api.v2.v2 import optimizers
+from tensorflow.python.keras import datasets, layers, Sequential
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-def preprocess(x, y):
 
+def preprocess(x, y):
     x = tf.cast(x, dtype=tf.float32) / 255.
     y = tf.cast(y, dtype=tf.int32)
-    return x,y
+    return x, y
 
 
 (x, y), (x_test, y_test) = datasets.fashion_mnist.load_data()
@@ -17,41 +18,35 @@ print(x.shape, y.shape)
 
 batchsz = 128
 
-db = tf.data.Dataset.from_tensor_slices((x,y))
+db = tf.data.Dataset.from_tensor_slices((x, y))
 db = db.map(preprocess).shuffle(10000).batch(batchsz)
 
-db_test = tf.data.Dataset.from_tensor_slices((x_test,y_test))
+db_test = tf.data.Dataset.from_tensor_slices((x_test, y_test))
 db_test = db_test.map(preprocess).batch(batchsz)
 
 db_iter = iter(db)
 sample = next(db_iter)
 print('batch:', sample[0].shape, sample[1].shape)
 
-
 model = Sequential([
-    layers.Dense(256, activation=tf.nn.relu), # [b, 784] => [b, 256]
-    layers.Dense(128, activation=tf.nn.relu), # [b, 256] => [b, 128]
-    layers.Dense(64, activation=tf.nn.relu), # [b, 128] => [b, 64]
-    layers.Dense(32, activation=tf.nn.relu), # [b, 64] => [b, 32]
-    layers.Dense(10) # [b, 32] => [b, 10], 330 = 32*10 + 10
+    layers.Dense(256, activation=tf.nn.relu),  # [b, 784] => [b, 256]
+    layers.Dense(128, activation=tf.nn.relu),  # [b, 256] => [b, 128]
+    layers.Dense(64, activation=tf.nn.relu),  # [b, 128] => [b, 64]
+    layers.Dense(32, activation=tf.nn.relu),  # [b, 64] => [b, 32]
+    layers.Dense(10)  # [b, 32] => [b, 10], 330 = 32*10 + 10
 ])
-model.build(input_shape=[None, 28*28])
+model.build(input_shape=[None, 28 * 28])
 model.summary()
 # w = w - lr*grad
 optimizer = optimizers.Adam(lr=1e-3)
 
+
 def main():
-
-
     for epoch in range(30):
-
-
-        for step, (x,y) in enumerate(db):
-
+        for step, (x, y) in enumerate(db):
             # x: [b, 28, 28] => [b, 784]
             # y: [b]
-            x = tf.reshape(x, [-1, 28*28])
-
+            x = tf.reshape(x, [-1, 28 * 28])
             with tf.GradientTape() as tape:
                 # [b, 784] => [b, 10]
                 logits = model(x)
@@ -62,21 +57,19 @@ def main():
                 loss_ce = tf.reduce_mean(loss_ce)
 
             grads = tape.gradient(loss_ce, model.trainable_variables)
+            # zip a[0]b[0]拼在一起 a[1]b[1]拼在一起
             optimizer.apply_gradients(zip(grads, model.trainable_variables))
-
 
             if step % 100 == 0:
                 print(epoch, step, 'loss:', float(loss_ce), float(loss_mse))
 
-
         # test
         total_correct = 0
         total_num = 0
-        for x,y in db_test:
-
+        for x, y in db_test:
             # x: [b, 28, 28] => [b, 784]
             # y: [b]
-            x = tf.reshape(x, [-1, 28*28])
+            x = tf.reshape(x, [-1, 28 * 28])
             # [b, 10]
             logits = model(x)
             # logits => prob, [b, 10]
@@ -95,11 +88,6 @@ def main():
 
         acc = total_correct / total_num
         print(epoch, 'test acc:', acc)
-
-
-
-
-
 
 
 if __name__ == '__main__':
