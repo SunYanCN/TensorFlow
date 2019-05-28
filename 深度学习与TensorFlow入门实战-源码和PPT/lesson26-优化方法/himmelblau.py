@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def himmelblau(x):
@@ -15,13 +16,12 @@ print('X,Y maps:', X.shape, Y.shape)
 Z = himmelblau([X, Y])
 
 fig = plt.figure('himmelblau')
-ax = fig.gca(projection='3d')
+ax = Axes3D(fig)
 ax.plot_surface(X, Y, Z)
 ax.view_init(60, -30)
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 plt.show()
-
 
 # [1., 0.], [-4, 0.], [4, 0.]
 x = tf.constant([4., 0.])
@@ -32,11 +32,9 @@ for step in range(200):
         tape.watch([x])
         y = himmelblau(x)
 
-    grads = tape.gradient(y, [x])[0] 
-    x -= 0.01*grads
-
-    
+    grads = tape.gradient(y, [x])[0]
+    x -= 0.01 * grads
 
     if step % 20 == 0:
-        print ('step {}: x = {}, f(x) = {}'
-               .format(step, x.numpy(), y.numpy()))
+        print('step {}: x = {}, f(x) = {}'
+              .format(step, x.numpy(), y.numpy()))
