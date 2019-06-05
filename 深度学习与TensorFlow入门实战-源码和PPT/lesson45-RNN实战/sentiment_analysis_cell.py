@@ -2,8 +2,8 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from tensorflow.python import keras
+from tensorflow.python.keras import layers, datasets
 
 tf.random.set_seed(22)
 np.random.seed(22)
@@ -16,19 +16,20 @@ batchsz = 128
 total_words = 10000
 max_review_len = 80
 embedding_len = 100
-(x_train, y_train), (x_test, y_test) = keras.datasets.imdb.load_data(num_words=total_words)
+(x_train, y_train), (x_test, y_test) = datasets.imdb.load_data(num_words=total_words)
 # x_train:[b, 80]
 # x_test: [b, 80]
+# pad_sequences等长处理
 x_train = keras.preprocessing.sequence.pad_sequences(x_train, maxlen=max_review_len)
 x_test = keras.preprocessing.sequence.pad_sequences(x_test, maxlen=max_review_len)
 
 db_train = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+# drop_remainder小于batchsz的丢弃掉
 db_train = db_train.shuffle(1000).batch(batchsz, drop_remainder=True)
 db_test = tf.data.Dataset.from_tensor_slices((x_test, y_test))
 db_test = db_test.batch(batchsz, drop_remainder=True)
 print('x_train shape:', x_train.shape, tf.reduce_max(y_train), tf.reduce_min(y_train))
 print('x_test shape:', x_test.shape)
-
 
 
 class MyRNN(keras.Model):
@@ -51,7 +52,6 @@ class MyRNN(keras.Model):
         self.rnn_cell0 = layers.SimpleRNNCell(units, dropout=0.5)
         self.rnn_cell1 = layers.SimpleRNNCell(units, dropout=0.5)
 
-
         # fc, [b, 80, 100] => [b, 64] => [b, 1]
         self.outlayer = layers.Dense(1)
 
@@ -71,7 +71,7 @@ class MyRNN(keras.Model):
         # [b, 80, 100] => [b, 64]
         state0 = self.state0
         state1 = self.state1
-        for word in tf.unstack(x, axis=1): # word: [b, 100]
+        for word in tf.unstack(x, axis=1):  # word: [b, 100]
             # h1 = x*wxh+h0*whh
             # out0: [b, 64]
             out0, state0 = self.rnn_cell0(word, state0, training)
@@ -85,13 +85,14 @@ class MyRNN(keras.Model):
 
         return prob
 
+
 def main():
     units = 64
     epochs = 4
 
     model = MyRNN(units)
-    model.compile(optimizer = keras.optimizers.Adam(0.001),
-                  loss = tf.losses.BinaryCrossentropy(),
+    model.compile(optimizer=keras.optimizers.Adam(0.001),
+                  loss=tf.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
     model.fit(db_train, epochs=epochs, validation_data=db_test)
 
